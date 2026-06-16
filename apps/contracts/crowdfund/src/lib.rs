@@ -28,9 +28,9 @@ use refund_single_token::{
 #[cfg(test)]
 mod auth_tests;
 #[cfg(test)]
-mod test;
-#[cfg(test)]
 mod crowdfund_initialize_function_test;
+#[cfg(test)]
+mod test;
 // #[cfg(test)]
 // mod cargo_toml_rust_test;
 // #[cfg(test)]

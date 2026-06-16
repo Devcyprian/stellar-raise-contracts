@@ -38,17 +38,15 @@ fn setup() -> (
     (env, client, creator, token_address, token_admin)
 }
 
-fn default_init(client: &CrowdfundContractClient, creator: &Address, token: &Address, deadline: u64) {
+fn default_init(
+    client: &CrowdfundContractClient,
+    creator: &Address,
+    token: &Address,
+    deadline: u64,
+) {
     client.initialize(
         creator, // admin = creator for simplicity
-        creator,
-        token,
-        &1_000_000,
-        &deadline,
-        &1_000,
-        &None,
-        &None,
-        &None,
+        creator, token, &1_000_000, &deadline, &1_000, &None, &None, &None,
     );
 }
 
@@ -101,11 +99,20 @@ fn test_initialize_emits_event() {
 #[test]
 fn test_initialize_platform_fee_exact_max_accepted() {
     let (env, client, creator, token, _) = setup();
-    let config = PlatformConfig { address: Address::generate(&env), fee_bps: 10_000 };
+    let config = PlatformConfig {
+        address: Address::generate(&env),
+        fee_bps: 10_000,
+    };
     let result = client.try_initialize(
-        &creator, &creator, &token, &1_000_000,
-        &(env.ledger().timestamp() + 3600), &1_000,
-        &Some(config), &None, &None,
+        &creator,
+        &creator,
+        &token,
+        &1_000_000,
+        &(env.ledger().timestamp() + 3600),
+        &1_000,
+        &Some(config),
+        &None,
+        &None,
     );
     assert!(result.is_ok());
 }
@@ -113,11 +120,20 @@ fn test_initialize_platform_fee_exact_max_accepted() {
 #[test]
 fn test_initialize_platform_fee_zero_accepted() {
     let (env, client, creator, token, _) = setup();
-    let config = PlatformConfig { address: Address::generate(&env), fee_bps: 0 };
+    let config = PlatformConfig {
+        address: Address::generate(&env),
+        fee_bps: 0,
+    };
     let result = client.try_initialize(
-        &creator, &creator, &token, &1_000_000,
-        &(env.ledger().timestamp() + 3600), &1_000,
-        &Some(config), &None, &None,
+        &creator,
+        &creator,
+        &token,
+        &1_000_000,
+        &(env.ledger().timestamp() + 3600),
+        &1_000,
+        &Some(config),
+        &None,
+        &None,
     );
     assert!(result.is_ok());
 }
@@ -125,25 +141,49 @@ fn test_initialize_platform_fee_zero_accepted() {
 #[test]
 fn test_initialize_platform_fee_over_max_returns_error() {
     let (env, client, creator, token, _) = setup();
-    let config = PlatformConfig { address: Address::generate(&env), fee_bps: 10_001 };
+    let config = PlatformConfig {
+        address: Address::generate(&env),
+        fee_bps: 10_001,
+    };
     let result = client.try_initialize(
-        &creator, &creator, &token, &1_000_000,
-        &(env.ledger().timestamp() + 3600), &1_000,
-        &Some(config), &None, &None,
+        &creator,
+        &creator,
+        &token,
+        &1_000_000,
+        &(env.ledger().timestamp() + 3600),
+        &1_000,
+        &Some(config),
+        &None,
+        &None,
     );
-    assert_eq!(result.unwrap_err().unwrap(), ContractError::InvalidPlatformFee);
+    assert_eq!(
+        result.unwrap_err().unwrap(),
+        ContractError::InvalidPlatformFee
+    );
 }
 
 #[test]
 fn test_initialize_platform_fee_u32_max_returns_error() {
     let (env, client, creator, token, _) = setup();
-    let config = PlatformConfig { address: Address::generate(&env), fee_bps: u32::MAX };
+    let config = PlatformConfig {
+        address: Address::generate(&env),
+        fee_bps: u32::MAX,
+    };
     let result = client.try_initialize(
-        &creator, &creator, &token, &1_000_000,
-        &(env.ledger().timestamp() + 3600), &1_000,
-        &Some(config), &None, &None,
+        &creator,
+        &creator,
+        &token,
+        &1_000_000,
+        &(env.ledger().timestamp() + 3600),
+        &1_000,
+        &Some(config),
+        &None,
+        &None,
     );
-    assert_eq!(result.unwrap_err().unwrap(), ContractError::InvalidPlatformFee);
+    assert_eq!(
+        result.unwrap_err().unwrap(),
+        ContractError::InvalidPlatformFee
+    );
 }
 
 // ── Bonus goal ────────────────────────────────────────────────────────────────
@@ -153,9 +193,15 @@ fn test_initialize_with_bonus_goal_stores_values() {
     let (env, client, creator, token, _) = setup();
     let desc = String::from_str(&env, "Unlock exclusive rewards");
     client.initialize(
-        &creator, &creator, &token, &1_000_000,
-        &(env.ledger().timestamp() + 3600), &1_000,
-        &None, &Some(2_000_000i128), &Some(desc.clone()),
+        &creator,
+        &creator,
+        &token,
+        &1_000_000,
+        &(env.ledger().timestamp() + 3600),
+        &1_000,
+        &None,
+        &Some(2_000_000i128),
+        &Some(desc.clone()),
     );
     assert_eq!(client.bonus_goal(), Some(2_000_000));
     assert_eq!(client.bonus_goal_description(), Some(desc));
@@ -167,31 +213,55 @@ fn test_initialize_with_bonus_goal_stores_values() {
 fn test_initialize_bonus_goal_equal_to_goal_returns_error() {
     let (env, client, creator, token, _) = setup();
     let result = client.try_initialize(
-        &creator, &creator, &token, &1_000_000,
-        &(env.ledger().timestamp() + 3600), &1_000,
-        &None, &Some(1_000_000i128), &None,
+        &creator,
+        &creator,
+        &token,
+        &1_000_000,
+        &(env.ledger().timestamp() + 3600),
+        &1_000,
+        &None,
+        &Some(1_000_000i128),
+        &None,
     );
-    assert_eq!(result.unwrap_err().unwrap(), ContractError::InvalidBonusGoal);
+    assert_eq!(
+        result.unwrap_err().unwrap(),
+        ContractError::InvalidBonusGoal
+    );
 }
 
 #[test]
 fn test_initialize_bonus_goal_less_than_goal_returns_error() {
     let (env, client, creator, token, _) = setup();
     let result = client.try_initialize(
-        &creator, &creator, &token, &1_000_000,
-        &(env.ledger().timestamp() + 3600), &1_000,
-        &None, &Some(500_000i128), &None,
+        &creator,
+        &creator,
+        &token,
+        &1_000_000,
+        &(env.ledger().timestamp() + 3600),
+        &1_000,
+        &None,
+        &Some(500_000i128),
+        &None,
     );
-    assert_eq!(result.unwrap_err().unwrap(), ContractError::InvalidBonusGoal);
+    assert_eq!(
+        result.unwrap_err().unwrap(),
+        ContractError::InvalidBonusGoal
+    );
 }
 
 #[test]
 fn test_initialize_bonus_goal_one_above_goal_accepted() {
     let (env, client, creator, token, _) = setup();
     let result = client.try_initialize(
-        &creator, &creator, &token, &1_000_000,
-        &(env.ledger().timestamp() + 3600), &1_000,
-        &None, &Some(1_000_001i128), &None,
+        &creator,
+        &creator,
+        &token,
+        &1_000_000,
+        &(env.ledger().timestamp() + 3600),
+        &1_000,
+        &None,
+        &Some(1_000_001i128),
+        &None,
     );
     assert!(result.is_ok());
     assert_eq!(client.bonus_goal(), Some(1_000_001));
@@ -201,9 +271,15 @@ fn test_initialize_bonus_goal_one_above_goal_accepted() {
 fn test_initialize_bonus_goal_without_description() {
     let (env, client, creator, token, _) = setup();
     client.initialize(
-        &creator, &creator, &token, &1_000_000,
-        &(env.ledger().timestamp() + 3600), &1_000,
-        &None, &Some(2_000_000i128), &None,
+        &creator,
+        &creator,
+        &token,
+        &1_000_000,
+        &(env.ledger().timestamp() + 3600),
+        &1_000,
+        &None,
+        &Some(2_000_000i128),
+        &None,
     );
     assert_eq!(client.bonus_goal(), Some(2_000_000));
     assert_eq!(client.bonus_goal_description(), None);
@@ -218,10 +294,12 @@ fn test_initialize_twice_returns_already_initialized() {
     default_init(&client, &creator, &token, deadline);
 
     let result = client.try_initialize(
-        &creator, &creator, &token, &1_000_000, &deadline, &1_000,
-        &None, &None, &None,
+        &creator, &creator, &token, &1_000_000, &deadline, &1_000, &None, &None, &None,
     );
-    assert_eq!(result.unwrap_err().unwrap(), ContractError::AlreadyInitialized);
+    assert_eq!(
+        result.unwrap_err().unwrap(),
+        ContractError::AlreadyInitialized
+    );
 }
 
 #[test]
@@ -231,8 +309,15 @@ fn test_initialize_twice_original_values_unchanged() {
     default_init(&client, &creator, &token, deadline);
 
     let _ = client.try_initialize(
-        &creator, &creator, &token, &9_999_999, &(deadline + 7200), &500,
-        &None, &None, &None,
+        &creator,
+        &creator,
+        &token,
+        &9_999_999,
+        &(deadline + 7200),
+        &500,
+        &None,
+        &None,
+        &None,
     );
     assert_eq!(client.goal(), 1_000_000);
 }
@@ -243,9 +328,15 @@ fn test_initialize_twice_original_values_unchanged() {
 fn test_initialize_goal_minimum_accepted() {
     let (env, client, creator, token, _) = setup();
     let result = client.try_initialize(
-        &creator, &creator, &token, &1,
-        &(env.ledger().timestamp() + 3600), &1,
-        &None, &None, &None,
+        &creator,
+        &creator,
+        &token,
+        &1,
+        &(env.ledger().timestamp() + 3600),
+        &1,
+        &None,
+        &None,
+        &None,
     );
     assert!(result.is_ok());
     assert_eq!(client.goal(), 1);
@@ -255,9 +346,15 @@ fn test_initialize_goal_minimum_accepted() {
 fn test_initialize_goal_zero_returns_error() {
     let (env, client, creator, token, _) = setup();
     let result = client.try_initialize(
-        &creator, &creator, &token, &0,
-        &(env.ledger().timestamp() + 3600), &1,
-        &None, &None, &None,
+        &creator,
+        &creator,
+        &token,
+        &0,
+        &(env.ledger().timestamp() + 3600),
+        &1,
+        &None,
+        &None,
+        &None,
     );
     assert_eq!(result.unwrap_err().unwrap(), ContractError::InvalidGoal);
 }
@@ -266,9 +363,15 @@ fn test_initialize_goal_zero_returns_error() {
 fn test_initialize_goal_negative_returns_error() {
     let (env, client, creator, token, _) = setup();
     let result = client.try_initialize(
-        &creator, &creator, &token, &-1,
-        &(env.ledger().timestamp() + 3600), &1,
-        &None, &None, &None,
+        &creator,
+        &creator,
+        &token,
+        &-1,
+        &(env.ledger().timestamp() + 3600),
+        &1,
+        &None,
+        &None,
+        &None,
     );
     assert_eq!(result.unwrap_err().unwrap(), ContractError::InvalidGoal);
 }
@@ -277,9 +380,15 @@ fn test_initialize_goal_negative_returns_error() {
 fn test_initialize_goal_i128_min_returns_error() {
     let (env, client, creator, token, _) = setup();
     let result = client.try_initialize(
-        &creator, &creator, &token, &i128::MIN,
-        &(env.ledger().timestamp() + 3600), &1,
-        &None, &None, &None,
+        &creator,
+        &creator,
+        &token,
+        &i128::MIN,
+        &(env.ledger().timestamp() + 3600),
+        &1,
+        &None,
+        &None,
+        &None,
     );
     assert_eq!(result.unwrap_err().unwrap(), ContractError::InvalidGoal);
 }
@@ -290,9 +399,15 @@ fn test_initialize_goal_i128_min_returns_error() {
 fn test_initialize_min_contribution_minimum_accepted() {
     let (env, client, creator, token, _) = setup();
     let result = client.try_initialize(
-        &creator, &creator, &token, &1_000_000,
-        &(env.ledger().timestamp() + 3600), &1,
-        &None, &None, &None,
+        &creator,
+        &creator,
+        &token,
+        &1_000_000,
+        &(env.ledger().timestamp() + 3600),
+        &1,
+        &None,
+        &None,
+        &None,
     );
     assert!(result.is_ok());
     assert_eq!(client.min_contribution(), 1);
@@ -302,22 +417,40 @@ fn test_initialize_min_contribution_minimum_accepted() {
 fn test_initialize_min_contribution_zero_returns_error() {
     let (env, client, creator, token, _) = setup();
     let result = client.try_initialize(
-        &creator, &creator, &token, &1_000_000,
-        &(env.ledger().timestamp() + 3600), &0,
-        &None, &None, &None,
+        &creator,
+        &creator,
+        &token,
+        &1_000_000,
+        &(env.ledger().timestamp() + 3600),
+        &0,
+        &None,
+        &None,
+        &None,
     );
-    assert_eq!(result.unwrap_err().unwrap(), ContractError::InvalidMinContribution);
+    assert_eq!(
+        result.unwrap_err().unwrap(),
+        ContractError::InvalidMinContribution
+    );
 }
 
 #[test]
 fn test_initialize_min_contribution_negative_returns_error() {
     let (env, client, creator, token, _) = setup();
     let result = client.try_initialize(
-        &creator, &creator, &token, &1_000_000,
-        &(env.ledger().timestamp() + 3600), &-100,
-        &None, &None, &None,
+        &creator,
+        &creator,
+        &token,
+        &1_000_000,
+        &(env.ledger().timestamp() + 3600),
+        &-100,
+        &None,
+        &None,
+        &None,
     );
-    assert_eq!(result.unwrap_err().unwrap(), ContractError::InvalidMinContribution);
+    assert_eq!(
+        result.unwrap_err().unwrap(),
+        ContractError::InvalidMinContribution
+    );
 }
 
 // ── Deadline validation ───────────────────────────────────────────────────────
@@ -327,8 +460,7 @@ fn test_initialize_deadline_exactly_min_offset_accepted() {
     let (env, client, creator, token, _) = setup();
     let deadline = env.ledger().timestamp() + 60;
     let result = client.try_initialize(
-        &creator, &creator, &token, &1_000_000, &deadline, &1_000,
-        &None, &None, &None,
+        &creator, &creator, &token, &1_000_000, &deadline, &1_000, &None, &None, &None,
     );
     assert!(result.is_ok());
 }
@@ -338,8 +470,7 @@ fn test_initialize_deadline_59s_returns_error() {
     let (env, client, creator, token, _) = setup();
     let deadline = env.ledger().timestamp() + 59;
     let result = client.try_initialize(
-        &creator, &creator, &token, &1_000_000, &deadline, &1_000,
-        &None, &None, &None,
+        &creator, &creator, &token, &1_000_000, &deadline, &1_000, &None, &None, &None,
     );
     assert_eq!(result.unwrap_err().unwrap(), ContractError::DeadlineTooSoon);
 }
@@ -349,8 +480,7 @@ fn test_initialize_deadline_equal_to_now_returns_error() {
     let (env, client, creator, token, _) = setup();
     let now = env.ledger().timestamp();
     let result = client.try_initialize(
-        &creator, &creator, &token, &1_000_000, &now, &1_000,
-        &None, &None, &None,
+        &creator, &creator, &token, &1_000_000, &now, &1_000, &None, &None, &None,
     );
     assert_eq!(result.unwrap_err().unwrap(), ContractError::DeadlineTooSoon);
 }
@@ -360,8 +490,7 @@ fn test_initialize_deadline_in_past_returns_error() {
     let (env, client, creator, token, _) = setup();
     env.ledger().set_timestamp(10_000);
     let result = client.try_initialize(
-        &creator, &creator, &token, &1_000_000, &5_000, &1_000,
-        &None, &None, &None,
+        &creator, &creator, &token, &1_000_000, &5_000, &1_000, &None, &None, &None,
     );
     assert_eq!(result.unwrap_err().unwrap(), ContractError::DeadlineTooSoon);
 }
@@ -371,8 +500,7 @@ fn test_initialize_deadline_far_future_accepted() {
     let (env, client, creator, token, _) = setup();
     let deadline = env.ledger().timestamp() + 365 * 24 * 3600;
     let result = client.try_initialize(
-        &creator, &creator, &token, &1_000_000, &deadline, &1_000,
-        &None, &None, &None,
+        &creator, &creator, &token, &1_000_000, &deadline, &1_000, &None, &None, &None,
     );
     assert!(result.is_ok());
     assert_eq!(client.deadline(), deadline);
@@ -463,7 +591,11 @@ fn test_is_retryable_already_initialized_is_false() {
 #[test]
 fn test_is_retryable_input_errors_are_true() {
     for code in 8u32..=12 {
-        assert!(is_init_error_retryable(code), "code {} should be retryable", code);
+        assert!(
+            is_init_error_retryable(code),
+            "code {} should be retryable",
+            code
+        );
     }
 }
 
@@ -490,9 +622,15 @@ fn test_log_initialize_not_emitted_on_validation_failure() {
     let (env, client, creator, token, _) = setup();
     // goal = 0 → InvalidGoal, no initialized event should be emitted
     let _ = client.try_initialize(
-        &creator, &creator, &token, &0,
-        &(env.ledger().timestamp() + 3600), &1,
-        &None, &None, &None,
+        &creator,
+        &creator,
+        &token,
+        &0,
+        &(env.ledger().timestamp() + 3600),
+        &1,
+        &None,
+        &None,
+        &None,
     );
     // No events should be emitted on failure.
     assert!(env.events().all().events().is_empty());
